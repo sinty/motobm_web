@@ -87,7 +87,8 @@ const translations = {
         specifyMcc: 'Пожалуйста, укажите MCC код',
         specifyQth: 'Пожалуйста, укажите QTH локатор',
         specifyGps: 'Пожалуйста, укажите GPS координаты',
-        invalidQth: 'Неверный QTH локатор'
+        invalidQth: 'Неверный QTH локатор',
+        mapInstructions: 'Кликните на карте, чтобы выбрать координаты, или введите их вручную в поля выше.'
     },
     en: {
         title: 'MOTOTRBO Zone Generator',
@@ -173,7 +174,8 @@ const translations = {
         specifyMcc: 'Please specify MCC code',
         specifyQth: 'Please specify QTH locator',
         specifyGps: 'Please specify GPS coordinates',
-        invalidQth: 'Invalid QTH locator'
+        invalidQth: 'Invalid QTH locator',
+        mapInstructions: 'Click on the map to select coordinates, or enter them manually in the fields above.'
     }
 };
 
@@ -239,6 +241,8 @@ function updatePageLanguage() {
             el.textContent = t(key);
         } else if (el.tagName === 'IMG' && el.hasAttribute('data-i18n-alt')) {
             el.alt = t(el.getAttribute('data-i18n-alt'));
+        } else if (el.classList && el.classList.contains('map-instructions')) {
+            el.textContent = t(key);
         } else {
             el.textContent = t(key);
         }
@@ -835,19 +839,40 @@ document.getElementById('repeaterForm').addEventListener('submit', async (e) => 
 });
 
 // Show/hide type-specific parameters
-document.getElementById('type').addEventListener('change', (e) => {
-    document.getElementById('mccParams').classList.remove('active');
-    document.getElementById('qthParams').classList.remove('active');
-    document.getElementById('gpsParams').classList.remove('active');
-    
-    if (e.target.value === 'mcc') {
-        document.getElementById('mccParams').classList.add('active');
-    } else if (e.target.value === 'qth') {
-        document.getElementById('qthParams').classList.add('active');
-    } else if (e.target.value === 'gps') {
-        document.getElementById('gpsParams').classList.add('active');
-    }
-});
+const typeSelect = document.getElementById('type');
+if (typeSelect) {
+    typeSelect.addEventListener('change', (e) => {
+        document.getElementById('mccParams').classList.remove('active');
+        document.getElementById('qthParams').classList.remove('active');
+        document.getElementById('gpsParams').classList.remove('active');
+        
+        if (e.target.value === 'mcc') {
+            document.getElementById('mccParams').classList.add('active');
+        } else if (e.target.value === 'qth') {
+            document.getElementById('qthParams').classList.add('active');
+        } else if (e.target.value === 'gps') {
+            document.getElementById('gpsParams').classList.add('active');
+            // Initialize map when GPS section becomes visible
+            // Wait a bit longer to ensure the section is fully visible
+            setTimeout(() => {
+                if (!map) {
+                    initMap();
+                } else {
+                    // Map already exists, just invalidate size
+                    setTimeout(() => {
+                        if (map) {
+                            try {
+                                map.invalidateSize();
+                            } catch (e) {
+                                console.warn('Error invalidating map size:', e);
+                            }
+                        }
+                    }, 200);
+                }
+            }, 300);
+        }
+    });
+}
 
 // Show/hide custom values textarea
 document.getElementById('customize').addEventListener('change', (e) => {
@@ -905,4 +930,244 @@ if (document.readyState === 'loading') {
 } else {
     // DOM is already ready
     initLanguage();
+}
+
+// Map initialization
+let map = null;
+let marker = null;
+let radiusCircle = null;
+let isUpdatingFromMap = false;
+let isUpdatingFromInput = false;
+
+function initMap() {
+    const mapElement = document.getElementById('map');
+    if (!mapElement) {
+        console.warn('Map element not found');
+        return;
+    }
+
+    // Check if Leaflet is loaded
+    if (typeof L === 'undefined') {
+        console.warn('Leaflet library not loaded');
+        // Try to wait a bit and retry
+        setTimeout(initMap, 100);
+        return;
+    }
+
+    // Check if map element is visible
+    const gpsParams = document.getElementById('gpsParams');
+    if (gpsParams && !gpsParams.classList.contains('active')) {
+        console.warn('GPS params section is not visible');
+        return;
+    }
+
+    // Check if map is already initialized
+    if (map) {
+        try {
+            map.invalidateSize();
+        } catch (e) {
+            console.warn('Error invalidating map size:', e);
+        }
+        return;
+    }
+
+    // Get initial coordinates from input fields if available
+    const latInput = document.getElementById('lat');
+    const lngInput = document.getElementById('lng');
+    let initialLat = 59.3293; // Default: Stockholm
+    let initialLng = 18.0686;
+    let initialZoom = 6;
+
+    if (latInput && lngInput && latInput.value && lngInput.value) {
+        const lat = parseFloat(latInput.value);
+        const lng = parseFloat(lngInput.value);
+        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+            initialLat = lat;
+            initialLng = lng;
+            initialZoom = 10; // Zoom in if coordinates are provided
+        }
+    }
+
+    try {
+        // Initialize map
+        map = L.map('map', {
+            zoomControl: true,
+            attributionControl: true
+        }).setView([initialLat, initialLng], initialZoom);
+
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Force map to resize after a short delay to ensure container is visible
+        setTimeout(() => {
+            if (map) {
+                map.invalidateSize();
+            }
+        }, 200);
+    } catch (e) {
+        console.error('Error initializing map:', e);
+        map = null;
+        return;
+    }
+
+    // Add click handler to map
+    map.on('click', function(e) {
+        if (!isUpdatingFromInput) {
+            isUpdatingFromMap = true;
+            updateCoordinatesFromMap(e.latlng.lat, e.latlng.lng);
+            isUpdatingFromMap = false;
+        }
+    });
+
+    // Update map when coordinates are entered manually
+    const latInputFinal = document.getElementById('lat');
+    const lngInputFinal = document.getElementById('lng');
+    if (latInputFinal && lngInputFinal) {
+        latInputFinal.addEventListener('input', updateMapFromInputs);
+        lngInputFinal.addEventListener('input', updateMapFromInputs);
+    }
+
+    const radiusInput = document.getElementById('radiusGps');
+    if (radiusInput) {
+        radiusInput.addEventListener('input', updateRadiusCircle);
+    }
+
+    // If coordinates were provided, add marker and circle
+    if (latInputFinal && lngInputFinal && latInputFinal.value && lngInputFinal.value) {
+        const lat = parseFloat(latInputFinal.value);
+        const lng = parseFloat(lngInputFinal.value);
+        if (!isNaN(lat) && !isNaN(lng)) {
+            updateCoordinatesFromMap(lat, lng);
+        }
+    }
+}
+
+function updateCoordinatesFromMap(lat, lng) {
+    const latInput = document.getElementById('lat');
+    const lngInput = document.getElementById('lng');
+    
+    if (latInput) latInput.value = lat.toFixed(6);
+    if (lngInput) lngInput.value = lng.toFixed(6);
+
+    // Update marker
+    if (marker) {
+        marker.setLatLng([lat, lng]);
+    } else {
+        marker = L.marker([lat, lng]).addTo(map);
+    }
+
+    // Update radius circle
+    updateRadiusCircle();
+    
+    // Center map on marker
+    map.setView([lat, lng], map.getZoom());
+}
+
+function updateMapFromInputs() {
+    if (isUpdatingFromMap) return;
+
+    const latInput = document.getElementById('lat');
+    const lngInput = document.getElementById('lng');
+    
+    if (!latInput || !lngInput || !map) return;
+
+    const lat = parseFloat(latInput.value);
+    const lng = parseFloat(lngInput.value);
+
+    if (isNaN(lat) || isNaN(lng)) return;
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+
+    isUpdatingFromInput = true;
+
+    // Update marker
+    if (marker) {
+        marker.setLatLng([lat, lng]);
+    } else {
+        marker = L.marker([lat, lng]).addTo(map);
+    }
+
+    // Update radius circle
+    updateRadiusCircle();
+    
+    // Center map on marker if it's far from current view
+    const currentCenter = map.getCenter();
+    const distance = Math.sqrt(
+        Math.pow(currentCenter.lat - lat, 2) + 
+        Math.pow(currentCenter.lng - lng, 2)
+    );
+    if (distance > 0.1) {
+        map.setView([lat, lng], map.getZoom());
+    }
+
+    isUpdatingFromInput = false;
+}
+
+function updateRadiusCircle() {
+    if (!map || !marker) return;
+
+    const radiusInput = document.getElementById('radiusGps');
+    if (!radiusInput) return;
+
+    const radius = parseFloat(radiusInput.value) || 100;
+    
+    // Remove existing circle
+    if (radiusCircle) {
+        map.removeLayer(radiusCircle);
+    }
+
+    // Add new circle
+    const markerLatLng = marker.getLatLng();
+    radiusCircle = L.circle(markerLatLng, {
+        color: '#667eea',
+        fillColor: '#667eea',
+        fillOpacity: 0.2,
+        radius: radius * 1000 // Convert km to meters
+    }).addTo(map);
+}
+
+// Wait for Leaflet to load
+function waitForLeaflet(callback, maxAttempts = 50) {
+    if (typeof L !== 'undefined' && typeof L.map === 'function') {
+        callback();
+    } else if (maxAttempts > 0) {
+        setTimeout(() => waitForLeaflet(callback, maxAttempts - 1), 100);
+    } else {
+        console.error('Leaflet library failed to load after', maxAttempts * 100, 'ms');
+    }
+}
+
+// Also initialize map on page load if GPS is already selected
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        waitForLeaflet(() => {
+            const typeSelect = document.getElementById('type');
+            if (typeSelect && typeSelect.value === 'gps') {
+                // Make sure GPS section is visible
+                const gpsParams = document.getElementById('gpsParams');
+                if (gpsParams) {
+                    gpsParams.classList.add('active');
+                }
+                setTimeout(() => {
+                    initMap();
+                }, 500);
+            }
+        });
+    });
+} else {
+    // DOM already loaded
+    waitForLeaflet(() => {
+        const typeSelect = document.getElementById('type');
+        if (typeSelect && typeSelect.value === 'gps') {
+            const gpsParams = document.getElementById('gpsParams');
+            if (gpsParams) {
+                gpsParams.classList.add('active');
+            }
+            setTimeout(() => {
+                initMap();
+            }, 500);
+        }
+    });
 }
