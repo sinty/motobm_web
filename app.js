@@ -182,15 +182,31 @@ let currentLang = localStorage.getItem('language') || 'ru';
 
 // Function to get translation
 function t(key) {
+    if (!translations[currentLang]) {
+        currentLang = 'ru';
+    }
     return translations[currentLang][key] || translations['ru'][key] || key;
 }
 
-// Function to set language (global)
+// Function to set language (global) - must be defined before DOM loads
 window.setLanguage = function(lang) {
+    if (!lang || (lang !== 'ru' && lang !== 'en')) {
+        lang = 'ru';
+    }
     currentLang = lang;
-    localStorage.setItem('language', lang);
-    document.documentElement.lang = lang;
-    updatePageLanguage();
+    try {
+        localStorage.setItem('language', lang);
+    } catch (e) {
+        // localStorage may not be available
+        console.warn('localStorage not available:', e);
+    }
+    if (document.documentElement) {
+        document.documentElement.lang = lang;
+    }
+    // Always try to update, even if DOM is not fully loaded
+    if (typeof updatePageLanguage === 'function') {
+        updatePageLanguage();
+    }
 };
 
 // Function to update all text on the page
@@ -855,8 +871,38 @@ function resetForm() {
 }
 
 // Initialize language on page load
-document.addEventListener('DOMContentLoaded', () => {
+function initLanguage() {
     // Set language attribute on html element
     document.documentElement.lang = currentLang;
     updatePageLanguage();
-});
+    
+    // Add event listeners to language switcher buttons
+    const langRu = document.getElementById('langRu');
+    const langEn = document.getElementById('langEn');
+    
+    if (langRu) {
+        langRu.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.setLanguage('ru');
+            return false;
+        });
+    }
+    
+    if (langEn) {
+        langEn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.setLanguage('en');
+            return false;
+        });
+    }
+}
+
+// Run initialization when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initLanguage);
+} else {
+    // DOM is already ready
+    initLanguage();
+}
