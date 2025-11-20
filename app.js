@@ -1,6 +1,256 @@
 // BrandMeister API URL
 const BM_URL = 'https://api.brandmeister.network/v2/device';
 
+// Localization system
+const translations = {
+    ru: {
+        title: 'MOTOTRBO Zone Generator',
+        subtitle: 'Генератор зон для MOTOTRBO из списка репитеров BrandMeister',
+        basedOn: 'Основано на работе',
+        repository: 'Репозиторий',
+        mainParams: 'Основные параметры',
+        zoneName: 'Название зоны *',
+        zoneNameTooltip: 'Выберите произвольное название для вашей зоны. Это название будет использоваться в имени XML файла и в настройках радио.',
+        zoneNamePlaceholder: 'Например: Germany',
+        band: 'Диапазон *',
+        bandTooltip: 'Выберите частотный диапазон: VHF (2 метра, 144-148 МГц) или UHF (70 сантиметров, 430-440 МГц).',
+        selectBand: 'Выберите диапазон',
+        vhf: 'VHF (2м)',
+        uhf: 'UHF (70см)',
+        selectType: 'Тип выбора *',
+        selectTypeTooltip: 'Выберите способ фильтрации репитеров: по MCC коду (код страны), по QTH локатору (Maidenhead) или по GPS координатам.',
+        selectTypePlaceholder: 'Выберите тип',
+        mccCode: 'MCC код',
+        qthLocator: 'QTH локатор',
+        gpsCoords: 'GPS координаты',
+        zoneCapacity: 'Емкость зоны',
+        zoneCapacityTooltip: 'Максимальное количество каналов в одной зоне. По умолчанию 160 для топовых моделей. Используйте 16 для lite и моделей без дисплея.',
+        filterParams: 'Параметры фильтрации',
+        forceDownload: 'Принудительно скачать список',
+        forceDownloadTooltip: 'Принудительно загрузить свежий список репитеров с сервера, игнорируя кэш (данные кэшируются на 1 час).',
+        onlyPep: 'Только репитеры с указанной мощностью',
+        onlyPepTooltip: 'Показывать только репитеры, у которых указана мощность передатчика (PEP). Это помогает отфильтровать неполные записи.',
+        onlySix: 'Только репитеры с 6-значным ID',
+        onlySixTooltip: 'Показывать только репитеры с 6-значным ID. Это помогает отфильтровать хотспоты (обычно имеют 7-значный ID) и оставить только настоящие репитеры.',
+        enableCustom: 'Включить пользовательские значения',
+        enableCustomTooltip: 'Включить дополнительные настройки в каждый сгенерированный канал. Укажите XML-поля, которые будут добавлены в каждый канал (например, дополнительные field элементы).',
+        customFields: 'Пользовательские XML-поля',
+        customFieldsTooltip: 'Введите дополнительные XML-поля, которые будут добавлены в каждый канал. ВАЖНО: Контакт (например, RussianGlobal) должен быть предварительно внесен в список контактов в CPS2.0, чтобы его можно было использовать здесь. Например: &lt;field name=&quot;CP_CUSTOM&quot;&gt;value&lt;/field&gt;',
+        important: '⚠️ Важно:',
+        importantText: 'Контакт (например, "RussianGlobal") и группа RX (например, "Избранные") должны быть предварительно внесены в CPS2.0, чтобы их можно было использовать здесь.',
+        contactExample: '1. Контакт "RussianGlobal":',
+        contactsExampleAlt: 'Пример контактов в CPS2.0',
+        rxGroupExample: '2. RX Group "Избранные":',
+        rxGroupExampleAlt: 'Пример RX Group в CPS2.0',
+        customFieldsPlaceholder: 'Например:\n<field name="CP_CUSTOM">value</field>\n<field name="CP_ANOTHER">another_value</field>',
+        customFieldsNote: 'Содержимое будет добавлено в каждый сгенерированный канал.',
+        callsignFilter: 'Фильтр по позывному',
+        callsignFilterTooltip: 'Показывать только репитеры, позывной которых содержит указанную строку. Например, можно указать номер региона для фильтрации по региону.',
+        callsignPlaceholder: 'Например: регион',
+        mccParams: 'Параметры MCC',
+        mccCodeOrCountry: 'MCC код или код страны',
+        mccTooltip: 'MCC (Mobile Country Code) - первые 3 цифры ID репитера, обычно соответствуют коду страны. Можно указать 3-значный код (например: 262 для Германии) или двухбуквенный код страны (например: DE для Германии, RU для России).',
+        mccPlaceholder: 'Например: 262 или DE',
+        qthParams: 'Параметры QTH локатора',
+        qthLocatorField: 'QTH локатор',
+        qthTooltip: 'QTH локатор (Maidenhead Locator System) - система координат, используемая в радиолюбительской связи. Формат: 2-6 символов (например: KO26BX). Первые 2 буквы - крупная сетка, следующие 2 цифры - средняя, последние 2 буквы - мелкая сетка.',
+        qthPlaceholder: 'Например: KO26BX',
+        radius: 'Радиус (км)',
+        radiusTooltip: 'Радиус поиска репитеров вокруг центра QTH локатора в километрах. По умолчанию 100 км.',
+        gpsParams: 'Параметры GPS',
+        latitude: 'Широта',
+        latitudeTooltip: 'Географическая широта в градусах (от -90 до 90). Для северного полушария - положительное значение, для южного - отрицательное. Например: 59.225 для Стокгольма.',
+        latitudePlaceholder: 'Например: 59.225',
+        longitude: 'Долгота',
+        longitudeTooltip: 'Географическая долгота в градусах (от -180 до 180). Для восточного полушария - положительное значение, для западного - отрицательное. Например: 18.250 для Стокгольма, -93.2780 для Миннеаполиса.',
+        longitudePlaceholder: 'Например: 18.250',
+        radiusGpsTooltip: 'Радиус поиска репитеров вокруг указанных GPS координат в километрах. По умолчанию 100 км.',
+        generateZones: 'Сгенерировать зоны',
+        reset: 'Сбросить',
+        loading: 'Загрузка данных...',
+        results: 'Результаты',
+        foundRepeaters: 'Найдено репитеров:',
+        callsign: 'Позывной',
+        city: 'Город',
+        lastSeen: 'Последний раз',
+        link: 'Ссылка',
+        downloadXml: 'Скачать XML файлы:',
+        loadingRepeaters: 'Загрузка списка репитеров...',
+        loadedRepeaters: 'Загружено репитеров:',
+        filteringRepeaters: 'Фильтрация репитеров...',
+        noRepeatersFound: 'Репитеры не найдены по заданным критериям',
+        foundRepeatersCount: 'Найдено репитеров:',
+        generatingXml: 'Генерация XML файлов...',
+        zonesGenerated: 'Успешно сгенерировано зон:',
+        error: 'Ошибка:',
+        fillRequiredFields: 'Пожалуйста, заполните все обязательные поля',
+        specifyMcc: 'Пожалуйста, укажите MCC код',
+        specifyQth: 'Пожалуйста, укажите QTH локатор',
+        specifyGps: 'Пожалуйста, укажите GPS координаты',
+        invalidQth: 'Неверный QTH локатор'
+    },
+    en: {
+        title: 'MOTOTRBO Zone Generator',
+        subtitle: 'MOTOTRBO zone generator from BrandMeister repeater list',
+        basedOn: 'Based on work by',
+        repository: 'Repository',
+        mainParams: 'Main Parameters',
+        zoneName: 'Zone Name *',
+        zoneNameTooltip: 'Choose an arbitrary name for your zone. This name will be used in the XML file name and in radio settings.',
+        zoneNamePlaceholder: 'For example: Germany',
+        band: 'Band *',
+        bandTooltip: 'Select frequency band: VHF (2 meters, 144-148 MHz) or UHF (70 centimeters, 430-440 MHz).',
+        selectBand: 'Select band',
+        vhf: 'VHF (2m)',
+        uhf: 'UHF (70cm)',
+        selectType: 'Selection Type *',
+        selectTypeTooltip: 'Choose how to filter repeaters: by MCC code (country code), by QTH locator (Maidenhead) or by GPS coordinates.',
+        selectTypePlaceholder: 'Select type',
+        mccCode: 'MCC Code',
+        qthLocator: 'QTH Locator',
+        gpsCoords: 'GPS Coordinates',
+        zoneCapacity: 'Zone Capacity',
+        zoneCapacityTooltip: 'Maximum number of channels in one zone. Default is 160 for top models. Use 16 for lite and non-display models.',
+        filterParams: 'Filter Parameters',
+        forceDownload: 'Force download list',
+        forceDownloadTooltip: 'Force download a fresh repeater list from the server, ignoring cache (data is cached for 1 hour).',
+        onlyPep: 'Only repeaters with specified power',
+        onlyPepTooltip: 'Show only repeaters that have transmitter power (PEP) specified. This helps filter out incomplete records.',
+        onlySix: 'Only repeaters with 6-digit ID',
+        onlySixTooltip: 'Show only repeaters with 6-digit ID. This helps filter out hotspots (usually have 7-digit ID) and keep only real repeaters.',
+        enableCustom: 'Enable custom values',
+        enableCustomTooltip: 'Include additional settings in each generated channel. Specify XML fields that will be added to each channel (e.g., additional field elements).',
+        customFields: 'Custom XML Fields',
+        customFieldsTooltip: 'Enter additional XML fields that will be added to each channel. IMPORTANT: Contact (e.g., RussianGlobal) must be pre-added to the contact list in CPS2.0 to be used here. For example: &lt;field name=&quot;CP_CUSTOM&quot;&gt;value&lt;/field&gt;',
+        important: '⚠️ Important:',
+        importantText: 'Contact (e.g., "RussianGlobal") and RX Group (e.g., "Favorites") must be pre-added to CPS2.0 to be used here.',
+        contactExample: '1. Contact "RussianGlobal":',
+        contactsExampleAlt: 'Example of contacts in CPS2.0',
+        rxGroupExample: '2. RX Group "Favorites":',
+        rxGroupExampleAlt: 'Example of RX Group in CPS2.0',
+        customFieldsPlaceholder: 'For example:\n<field name="CP_CUSTOM">value</field>\n<field name="CP_ANOTHER">another_value</field>',
+        customFieldsNote: 'Content will be added to each generated channel.',
+        callsignFilter: 'Callsign Filter',
+        callsignFilterTooltip: 'Show only repeaters whose callsign contains the specified string. For example, you can specify a region number to filter by region.',
+        callsignPlaceholder: 'For example: region',
+        mccParams: 'MCC Parameters',
+        mccCodeOrCountry: 'MCC Code or Country Code',
+        mccTooltip: 'MCC (Mobile Country Code) - first 3 digits of repeater ID, usually correspond to country code. You can specify a 3-digit code (e.g., 262 for Germany) or a two-letter country code (e.g., DE for Germany, RU for Russia).',
+        mccPlaceholder: 'For example: 262 or DE',
+        qthParams: 'QTH Locator Parameters',
+        qthLocatorField: 'QTH Locator',
+        qthTooltip: 'QTH locator (Maidenhead Locator System) - coordinate system used in amateur radio. Format: 2-6 characters (e.g., KO26BX). First 2 letters - large grid, next 2 digits - medium, last 2 letters - small grid.',
+        qthPlaceholder: 'For example: KO26BX',
+        radius: 'Radius (km)',
+        radiusTooltip: 'Search radius for repeaters around the center of the QTH locator in kilometers. Default is 100 km.',
+        gpsParams: 'GPS Parameters',
+        latitude: 'Latitude',
+        latitudeTooltip: 'Geographic latitude in degrees (from -90 to 90). For northern hemisphere - positive value, for southern - negative. For example: 59.225 for Stockholm.',
+        latitudePlaceholder: 'For example: 59.225',
+        longitude: 'Longitude',
+        longitudeTooltip: 'Geographic longitude in degrees (from -180 to 180). For eastern hemisphere - positive value, for western - negative. For example: 18.250 for Stockholm, -93.2780 for Minneapolis.',
+        longitudePlaceholder: 'For example: 18.250',
+        radiusGpsTooltip: 'Search radius for repeaters around the specified GPS coordinates in kilometers. Default is 100 km.',
+        generateZones: 'Generate Zones',
+        reset: 'Reset',
+        loading: 'Loading data...',
+        results: 'Results',
+        foundRepeaters: 'Found repeaters:',
+        callsign: 'Callsign',
+        city: 'City',
+        lastSeen: 'Last Seen',
+        link: 'Link',
+        downloadXml: 'Download XML Files:',
+        loadingRepeaters: 'Loading repeater list...',
+        loadedRepeaters: 'Loaded repeaters:',
+        filteringRepeaters: 'Filtering repeaters...',
+        noRepeatersFound: 'No repeaters found matching the criteria',
+        foundRepeatersCount: 'Found repeaters:',
+        generatingXml: 'Generating XML files...',
+        zonesGenerated: 'Successfully generated zones:',
+        error: 'Error:',
+        fillRequiredFields: 'Please fill in all required fields',
+        specifyMcc: 'Please specify MCC code',
+        specifyQth: 'Please specify QTH locator',
+        specifyGps: 'Please specify GPS coordinates',
+        invalidQth: 'Invalid QTH locator'
+    }
+};
+
+// Get current language from localStorage or default to 'ru'
+let currentLang = localStorage.getItem('language') || 'ru';
+
+// Function to get translation
+function t(key) {
+    return translations[currentLang][key] || translations['ru'][key] || key;
+}
+
+// Function to set language (global)
+window.setLanguage = function(lang) {
+    currentLang = lang;
+    localStorage.setItem('language', lang);
+    document.documentElement.lang = lang;
+    updatePageLanguage();
+};
+
+// Function to update all text on the page
+function updatePageLanguage() {
+    // Update all elements with data-i18n attribute
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (el.tagName === 'INPUT') {
+            if (el.type === 'text' || el.type === 'number') {
+                if (el.hasAttribute('placeholder')) {
+                    const placeholderKey = key + 'Placeholder';
+                    const placeholderText = t(placeholderKey);
+                    // Only update if translation exists (not the key itself)
+                    if (placeholderText !== placeholderKey) {
+                        el.placeholder = placeholderText;
+                    }
+                }
+            }
+        } else if (el.tagName === 'TEXTAREA') {
+            if (el.hasAttribute('placeholder')) {
+                const placeholderKey = key + 'Placeholder';
+                const placeholderText = t(placeholderKey);
+                // Only update if translation exists (not the key itself)
+                if (placeholderText !== placeholderKey) {
+                    // Replace \n with actual newlines for textarea
+                    el.placeholder = placeholderText.replace(/\\n/g, '\n');
+                }
+            }
+        } else if (el.tagName === 'OPTION') {
+            el.textContent = t(key);
+        } else if (el.tagName === 'IMG' && el.hasAttribute('data-i18n-alt')) {
+            el.alt = t(el.getAttribute('data-i18n-alt'));
+        } else {
+            el.textContent = t(key);
+        }
+    });
+    
+    // Update title
+    document.title = t('title');
+    
+    // Update tooltips
+    document.querySelectorAll('[data-tooltip-key]').forEach(el => {
+        const key = el.getAttribute('data-tooltip-key');
+        el.setAttribute('data-tooltip', t(key));
+    });
+    
+    // Update language switcher buttons
+    const langRu = document.getElementById('langRu');
+    const langEn = document.getElementById('langEn');
+    if (langRu && langEn) {
+        if (currentLang === 'ru') {
+            langRu.classList.add('active');
+            langEn.classList.remove('active');
+        } else {
+            langRu.classList.remove('active');
+            langEn.classList.add('active');
+        }
+    }
+}
+
 // Mobile country codes mapping (common codes)
 const MOBILE_CODES = {
     'US': '310', 'CA': '302', 'GB': '234', 'DE': '262', 'FR': '208', 'IT': '222',
@@ -177,7 +427,7 @@ function filterRepeaterList(repeaterList, params) {
     if (params.type === 'qth' && params.qth) {
         qthCoords = maidenheadToLocation(params.qth, true);
         if (!qthCoords) {
-            throw new Error('Неверный QTH локатор');
+            throw new Error(t('invalidQth'));
         }
     } else if (params.type === 'gps' && params.lat !== null && params.lng !== null) {
         qthCoords = [parseFloat(params.lat), parseFloat(params.lng)];
@@ -423,10 +673,10 @@ function displayResults(outputList, zoneFiles) {
     const downloadLinks = document.getElementById('downloadLinks');
     const resultCount = document.getElementById('resultCount');
     
-    resultCount.textContent = `Найдено репитеров: ${outputList.length}`;
+    resultCount.textContent = `${t('foundRepeaters')} ${outputList.length}`;
     
     // Create table
-    let tableHTML = '<table><thead><tr><th>Позывной</th><th>RX</th><th>TX</th><th>CC</th><th>Город</th><th>Последний раз</th><th>URL</th></tr></thead><tbody>';
+    let tableHTML = `<table><thead><tr><th>${t('callsign')}</th><th>RX</th><th>TX</th><th>CC</th><th>${t('city')}</th><th>${t('lastSeen')}</th><th>URL</th></tr></thead><tbody>`;
     
     outputList.forEach(item => {
         tableHTML += `<tr>
@@ -436,7 +686,7 @@ function displayResults(outputList, zoneFiles) {
             <td>${item.cc}</td>
             <td>${item.city}</td>
             <td>${item.lastSeen}</td>
-            <td><a href="${item.url}" target="_blank">Ссылка</a></td>
+            <td><a href="${item.url}" target="_blank">${t('link')}</a></td>
         </tr>`;
     });
     
@@ -444,7 +694,7 @@ function displayResults(outputList, zoneFiles) {
     resultsTable.innerHTML = tableHTML;
     
     // Create download links
-    downloadLinks.innerHTML = '<h3>Скачать XML файлы:</h3>';
+    downloadLinks.innerHTML = `<h3>${t('downloadXml')}</h3>`;
     zoneFiles.forEach(file => {
         const blob = new Blob([file.content], { type: 'application/xml' });
         const url = URL.createObjectURL(blob);
@@ -501,43 +751,43 @@ document.getElementById('repeaterForm').addEventListener('submit', async (e) => 
     
     // Validate required fields
     if (!params.name || !params.band || !params.type) {
-        showStatus('Пожалуйста, заполните все обязательные поля', 'error');
+        showStatus(t('fillRequiredFields'), 'error');
         return;
     }
     
     // Validate type-specific fields
     if (params.type === 'mcc' && !params.mcc) {
-        showStatus('Пожалуйста, укажите MCC код', 'error');
+        showStatus(t('specifyMcc'), 'error');
         return;
     }
     if (params.type === 'qth' && !params.qth) {
-        showStatus('Пожалуйста, укажите QTH локатор', 'error');
+        showStatus(t('specifyQth'), 'error');
         return;
     }
     if (params.type === 'gps' && (params.lat === null || params.lng === null)) {
-        showStatus('Пожалуйста, укажите GPS координаты', 'error');
+        showStatus(t('specifyGps'), 'error');
         return;
     }
     
     loading.classList.add('active');
-    showStatus('Загрузка списка репитеров...', 'info');
+    showStatus(t('loadingRepeaters'), 'info');
     
     try {
         // Download repeater list
         const repeaterList = await downloadRepeaterList(params.force);
-        showStatus(`Загружено репитеров: ${repeaterList.length}`, 'info');
+        showStatus(`${t('loadedRepeaters')} ${repeaterList.length}`, 'info');
         
         // Filter list
-        showStatus('Фильтрация репитеров...', 'info');
+        showStatus(t('filteringRepeaters'), 'info');
         const filteredList = filterRepeaterList(repeaterList, params);
         
         if (filteredList.length === 0) {
-            showStatus('Репитеры не найдены по заданным критериям', 'error');
+            showStatus(t('noRepeatersFound'), 'error');
             loading.classList.remove('active');
             return;
         }
         
-        showStatus(`Найдено репитеров: ${filteredList.length}`, 'success');
+        showStatus(`${t('foundRepeatersCount')} ${filteredList.length}`, 'success');
         
         // Get custom values from textarea if enabled
         let customValues = '';
@@ -553,16 +803,16 @@ document.getElementById('repeaterForm').addEventListener('submit', async (e) => 
         }
         
         // Generate zone files
-        showStatus('Генерация XML файлов...', 'info');
+        showStatus(t('generatingXml'), 'info');
         const { zoneFiles, outputList } = generateZoneFiles(filteredList, params, customValues);
         
         // Display results
         displayResults(outputList, zoneFiles);
-        showStatus(`Успешно сгенерировано зон: ${zoneFiles.length}`, 'success');
+        showStatus(`${t('zonesGenerated')} ${zoneFiles.length}`, 'success');
         
     } catch (error) {
         console.error('Error:', error);
-        showStatus(`Ошибка: ${error.message}`, 'error');
+        showStatus(`${t('error')} ${error.message}`, 'error');
     } finally {
         loading.classList.remove('active');
     }
@@ -603,3 +853,10 @@ function resetForm() {
     document.getElementById('gpsParams').classList.remove('active');
     document.getElementById('customValuesContainer').classList.remove('active');
 }
+
+// Initialize language on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Set language attribute on html element
+    document.documentElement.lang = currentLang;
+    updatePageLanguage();
+});

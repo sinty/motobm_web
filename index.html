@@ -348,61 +348,106 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .language-switcher button {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .language-switcher button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.1);
+        }
+
+        .language-switcher button.active {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: white;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .header {
+            position: relative;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>MOTOTRBO Zone Generator</h1>
-            <p>Генератор зон для MOTOTRBO из списка репитеров BrandMeister</p>
+            <div class="language-switcher">
+                <button id="langRu" onclick="setLanguage('ru')" class="active" title="Русский">🇷🇺</button>
+                <button id="langEn" onclick="setLanguage('en')" title="English">🇬🇧</button>
+            </div>
+            <h1 data-i18n="title">MOTOTRBO Zone Generator</h1>
+            <p data-i18n="subtitle">Генератор зон для MOTOTRBO из списка репитеров BrandMeister</p>
             <div class="credits">
-                Основано на работе <a href="https://github.com/yl3im" target="_blank" rel="noopener noreferrer">yl3im</a> | 
-                <a href="https://github.com/yl3im/motobm" target="_blank" rel="noopener noreferrer">Репозиторий</a>
+                <span data-i18n="basedOn">Основано на работе</span> <a href="https://github.com/yl3im" target="_blank" rel="noopener noreferrer">yl3im</a> | 
+                <a href="https://github.com/yl3im/motobm" target="_blank" rel="noopener noreferrer" data-i18n="repository">Репозиторий</a>
             </div>
         </div>
 
         <div class="content">
             <form id="repeaterForm">
                 <div class="form-section">
-                    <h2>Основные параметры</h2>
+                    <h2 data-i18n="mainParams">Основные параметры</h2>
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="name">
-                                Название зоны *
-                                <span class="tooltip-icon" data-tooltip="Выберите произвольное название для вашей зоны. Это название будет использоваться в имени XML файла и в настройках радио.">?</span>
+                                <span data-i18n="zoneName">Название зоны *</span>
+                                <span class="tooltip-icon" data-tooltip-key="zoneNameTooltip">?</span>
                             </label>
-                            <input type="text" id="name" name="name" required placeholder="Например: Germany">
+                            <input type="text" id="name" name="name" required data-i18n="zoneName" placeholder="Например: Germany">
                         </div>
 
                         <div class="form-group">
                             <label for="band">
-                                Диапазон *
-                                <span class="tooltip-icon" data-tooltip="Выберите частотный диапазон: VHF (2 метра, 144-148 МГц) или UHF (70 сантиметров, 430-440 МГц).">?</span>
+                                <span data-i18n="band">Диапазон *</span>
+                                <span class="tooltip-icon" data-tooltip-key="bandTooltip">?</span>
                             </label>
                             <select id="band" name="band" required>
-                                <option value="">Выберите диапазон</option>
-                                <option value="vhf">VHF (2м)</option>
-                                <option value="uhf">UHF (70см)</option>
+                                <option value="" data-i18n="selectBand">Выберите диапазон</option>
+                                <option value="vhf" data-i18n="vhf">VHF (2м)</option>
+                                <option value="uhf" data-i18n="uhf">UHF (70см)</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="type">
-                                Тип выбора *
-                                <span class="tooltip-icon" data-tooltip="Выберите способ фильтрации репитеров: по MCC коду (код страны), по QTH локатору (Maidenhead) или по GPS координатам.">?</span>
+                                <span data-i18n="selectType">Тип выбора *</span>
+                                <span class="tooltip-icon" data-tooltip-key="selectTypeTooltip">?</span>
                             </label>
                             <select id="type" name="type" required>
-                                <option value="">Выберите тип</option>
-                                <option value="mcc">MCC код</option>
-                                <option value="qth">QTH локатор</option>
-                                <option value="gps">GPS координаты</option>
+                                <option value="" data-i18n="selectTypePlaceholder">Выберите тип</option>
+                                <option value="mcc" data-i18n="mccCode">MCC код</option>
+                                <option value="qth" data-i18n="qthLocator">QTH локатор</option>
+                                <option value="gps" data-i18n="gpsCoords">GPS координаты</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="zoneCapacity">
-                                Емкость зоны
-                                <span class="tooltip-icon" data-tooltip="Максимальное количество каналов в одной зоне. По умолчанию 160 для топовых моделей. Используйте 16 для lite и моделей без дисплея.">?</span>
+                                <span data-i18n="zoneCapacity">Емкость зоны</span>
+                                <span class="tooltip-icon" data-tooltip-key="zoneCapacityTooltip">?</span>
                             </label>
                             <input type="number" id="zoneCapacity" name="zoneCapacity" value="160" min="1" max="160">
                         </div>
@@ -410,37 +455,37 @@
                 </div>
 
                 <div class="form-section">
-                    <h2>Параметры фильтрации</h2>
+                    <h2 data-i18n="filterParams">Параметры фильтрации</h2>
                     <div class="form-grid">
                         <div class="form-group checkbox">
                             <input type="checkbox" id="force" name="force">
                             <label for="force">
-                                Принудительно скачать список
-                                <span class="tooltip-icon" data-tooltip="Принудительно загрузить свежий список репитеров с сервера, игнорируя кэш (данные кэшируются на 1 час).">?</span>
+                                <span data-i18n="forceDownload">Принудительно скачать список</span>
+                                <span class="tooltip-icon" data-tooltip-key="forceDownloadTooltip">?</span>
                             </label>
                         </div>
 
                         <div class="form-group checkbox">
                             <input type="checkbox" id="pep" name="pep">
                             <label for="pep">
-                                Только репитеры с указанной мощностью
-                                <span class="tooltip-icon" data-tooltip="Показывать только репитеры, у которых указана мощность передатчика (PEP). Это помогает отфильтровать неполные записи.">?</span>
+                                <span data-i18n="onlyPep">Только репитеры с указанной мощностью</span>
+                                <span class="tooltip-icon" data-tooltip-key="onlyPepTooltip">?</span>
                             </label>
                         </div>
 
                         <div class="form-group checkbox">
                             <input type="checkbox" id="six" name="six">
                             <label for="six">
-                                Только репитеры с 6-значным ID
-                                <span class="tooltip-icon" data-tooltip="Показывать только репитеры с 6-значным ID. Это помогает отфильтровать хотспоты (обычно имеют 7-значный ID) и оставить только настоящие репитеры.">?</span>
+                                <span data-i18n="onlySix">Только репитеры с 6-значным ID</span>
+                                <span class="tooltip-icon" data-tooltip-key="onlySixTooltip">?</span>
                             </label>
                         </div>
 
                         <div class="form-group checkbox">
                             <input type="checkbox" id="customize" name="customize">
                             <label for="customize">
-                                Включить пользовательские значения
-                                <span class="tooltip-icon" data-tooltip="Включить дополнительные настройки в каждый сгенерированный канал. Укажите XML-поля, которые будут добавлены в каждый канал (например, дополнительные field элементы).">?</span>
+                                <span data-i18n="enableCustom">Включить пользовательские значения</span>
+                                <span class="tooltip-icon" data-tooltip-key="enableCustomTooltip">?</span>
                             </label>
                         </div>
                     </div>
@@ -448,64 +493,64 @@
                     <div id="customValuesContainer" class="type-specific" style="margin-top: 15px;">
                         <div class="form-group">
                             <label for="customValues">
-                                Пользовательские XML-поля
-                                <span class="tooltip-icon" data-tooltip="Введите дополнительные XML-поля, которые будут добавлены в каждый канал. ВАЖНО: Контакт (например, RussianGlobal) должен быть предварительно внесен в список контактов в CPS2.0, чтобы его можно было использовать здесь. Например: &lt;field name=&quot;CP_CUSTOM&quot;&gt;value&lt;/field&gt;">?</span>
+                                <span data-i18n="customFields">Пользовательские XML-поля</span>
+                                <span class="tooltip-icon" data-tooltip-key="customFieldsTooltip">?</span>
                             </label>
                             <div style="margin-bottom: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; font-size: 13px;">
-                                <strong>⚠️ Важно:</strong> Контакт (например, "RussianGlobal") и группа RX (например, "Избранные") должны быть предварительно внесены в CPS2.0, чтобы их можно было использовать здесь.
+                                <strong data-i18n="important">⚠️ Важно:</strong> <span data-i18n="importantText">Контакт (например, "RussianGlobal") и группа RX (например, "Избранные") должны быть предварительно внесены в CPS2.0, чтобы их можно было использовать здесь.</span>
                             </div>
                             <div style="margin-bottom: 15px;">
-                                <div style="margin-bottom: 10px; font-weight: 600; color: #555; font-size: 13px;">1. Контакт "RussianGlobal":</div>
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #555; font-size: 13px;" data-i18n="contactExample">1. Контакт "RussianGlobal":</div>
                                 <div style="margin-bottom: 10px; text-align: center;">
-                                    <img src="contacts-example.svg" alt="Пример контактов в CPS2.0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+                                    <img src="contacts-example.svg" data-i18n-alt="contactsExampleAlt" alt="Пример контактов в CPS2.0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
                                 </div>
-                                <div style="margin-bottom: 10px; font-weight: 600; color: #555; font-size: 13px; margin-top: 15px;">2. RX Group "Избранные":</div>
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #555; font-size: 13px; margin-top: 15px;" data-i18n="rxGroupExample">2. RX Group "Избранные":</div>
                                 <div style="margin-bottom: 10px; text-align: center;">
-                                    <img src="rxgroup-example.svg" alt="Пример RX Group в CPS2.0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+                                    <img src="rxgroup-example.svg" data-i18n-alt="rxGroupExampleAlt" alt="Пример RX Group в CPS2.0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
                                 </div>
                             </div>
-                            <textarea id="customValues" name="customValues" rows="6" placeholder='Например:&#10;&lt;field name="CP_CUSTOM"&gt;value&lt;/field&gt;&#10;&lt;field name="CP_ANOTHER"&gt;another_value&lt;/field&gt;' style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical;"><field name="CP_UKPPERS" Name="RussianGlobal">RussianGlobal</field>
+                            <textarea id="customValues" name="customValues" rows="6" data-i18n="customFields" placeholder='Например:&#10;&lt;field name="CP_CUSTOM"&gt;value&lt;/field&gt;&#10;&lt;field name="CP_ANOTHER"&gt;another_value&lt;/field&gt;' style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical;"><field name="CP_UKPPERS" Name="RussianGlobal">RussianGlobal</field>
 <field name="CP_TGLISTIT" Name="DigitalRXGroupList/Избранные">DigitalRXGroupList/Избранные</field></textarea>
-                            <small style="color: #666; margin-top: 5px; display: block;">Содержимое будет добавлено в каждый сгенерированный канал.</small>
+                            <small style="color: #666; margin-top: 5px; display: block;" data-i18n="customFieldsNote">Содержимое будет добавлено в каждый сгенерированный канал.</small>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="callsign">
-                            Фильтр по позывному
-                            <span class="tooltip-icon" data-tooltip="Показывать только репитеры, позывной которых содержит указанную строку. Например, можно указать номер региона для фильтрации по региону.">?</span>
+                            <span data-i18n="callsignFilter">Фильтр по позывному</span>
+                            <span class="tooltip-icon" data-tooltip-key="callsignFilterTooltip">?</span>
                         </label>
-                        <input type="text" id="callsign" name="callsign" placeholder="Например: регион">
+                        <input type="text" id="callsign" name="callsign" data-i18n="callsignFilter" placeholder="Например: регион">
                     </div>
                 </div>
 
                 <div class="form-section">
                     <div id="mccParams" class="type-specific">
-                        <h2>Параметры MCC</h2>
+                        <h2 data-i18n="mccParams">Параметры MCC</h2>
                         <div class="form-group">
                             <label for="mcc">
-                                MCC код или код страны
-                                <span class="tooltip-icon" data-tooltip="MCC (Mobile Country Code) - первые 3 цифры ID репитера, обычно соответствуют коду страны. Можно указать 3-значный код (например: 262 для Германии) или двухбуквенный код страны (например: DE для Германии, RU для России).">?</span>
+                                <span data-i18n="mccCodeOrCountry">MCC код или код страны</span>
+                                <span class="tooltip-icon" data-tooltip-key="mccTooltip">?</span>
                             </label>
-                            <input type="text" id="mcc" name="mcc" placeholder="Например: 262 или DE">
+                            <input type="text" id="mcc" name="mcc" data-i18n="mccCodeOrCountry" placeholder="Например: 262 или DE">
                         </div>
                     </div>
 
                     <div id="qthParams" class="type-specific">
-                        <h2>Параметры QTH локатора</h2>
+                        <h2 data-i18n="qthParams">Параметры QTH локатора</h2>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="qth">
-                                    QTH локатор
-                                    <span class="tooltip-icon" data-tooltip="QTH локатор (Maidenhead Locator System) - система координат, используемая в радиолюбительской связи. Формат: 2-6 символов (например: KO26BX). Первые 2 буквы - крупная сетка, следующие 2 цифры - средняя, последние 2 буквы - мелкая сетка.">?</span>
+                                    <span data-i18n="qthLocatorField">QTH локатор</span>
+                                    <span class="tooltip-icon" data-tooltip-key="qthTooltip">?</span>
                                 </label>
-                                <input type="text" id="qth" name="qth" placeholder="Например: KO26BX">
+                                <input type="text" id="qth" name="qth" data-i18n="qthLocatorField" placeholder="Например: KO26BX">
                             </div>
 
                             <div class="form-group">
                                 <label for="radius">
-                                    Радиус (км)
-                                    <span class="tooltip-icon" data-tooltip="Радиус поиска репитеров вокруг центра QTH локатора в километрах. По умолчанию 100 км.">?</span>
+                                    <span data-i18n="radius">Радиус (км)</span>
+                                    <span class="tooltip-icon" data-tooltip-key="radiusTooltip">?</span>
                                 </label>
                                 <input type="number" id="radius" name="radius" value="100" min="1">
                             </div>
@@ -513,28 +558,28 @@
                     </div>
 
                     <div id="gpsParams" class="type-specific">
-                        <h2>Параметры GPS</h2>
+                        <h2 data-i18n="gpsParams">Параметры GPS</h2>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="lat">
-                                    Широта
-                                    <span class="tooltip-icon" data-tooltip="Географическая широта в градусах (от -90 до 90). Для северного полушария - положительное значение, для южного - отрицательное. Например: 59.225 для Стокгольма.">?</span>
+                                    <span data-i18n="latitude">Широта</span>
+                                    <span class="tooltip-icon" data-tooltip-key="latitudeTooltip">?</span>
                                 </label>
-                                <input type="number" id="lat" name="lat" step="any" placeholder="Например: 59.225">
+                                <input type="number" id="lat" name="lat" step="any" data-i18n="latitude" placeholder="Например: 59.225">
                             </div>
 
                             <div class="form-group">
                                 <label for="lng">
-                                    Долгота
-                                    <span class="tooltip-icon" data-tooltip="Географическая долгота в градусах (от -180 до 180). Для восточного полушария - положительное значение, для западного - отрицательное. Например: 18.250 для Стокгольма, -93.2780 для Миннеаполиса.">?</span>
+                                    <span data-i18n="longitude">Долгота</span>
+                                    <span class="tooltip-icon" data-tooltip-key="longitudeTooltip">?</span>
                                 </label>
-                                <input type="number" id="lng" name="lng" step="any" placeholder="Например: 18.250">
+                                <input type="number" id="lng" name="lng" step="any" data-i18n="longitude" placeholder="Например: 18.250">
                             </div>
 
                             <div class="form-group">
                                 <label for="radiusGps">
-                                    Радиус (км)
-                                    <span class="tooltip-icon" data-tooltip="Радиус поиска репитеров вокруг указанных GPS координат в километрах. По умолчанию 100 км.">?</span>
+                                    <span data-i18n="radius">Радиус (км)</span>
+                                    <span class="tooltip-icon" data-tooltip-key="radiusGpsTooltip">?</span>
                                 </label>
                                 <input type="number" id="radiusGps" name="radiusGps" value="100" min="1">
                             </div>
@@ -543,21 +588,21 @@
                 </div>
 
                 <div class="button-group">
-                    <button type="submit" class="btn-primary">Сгенерировать зоны</button>
-                    <button type="button" class="btn-secondary" onclick="resetForm()">Сбросить</button>
+                    <button type="submit" class="btn-primary" data-i18n="generateZones">Сгенерировать зоны</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()" data-i18n="reset">Сбросить</button>
                 </div>
             </form>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p style="margin-top: 15px;">Загрузка данных...</p>
+                <p style="margin-top: 15px;" data-i18n="loading">Загрузка данных...</p>
             </div>
 
             <div class="status" id="status"></div>
 
             <div class="results-section" id="resultsSection">
                 <div class="results-header">
-                    <h2>Результаты</h2>
+                    <h2 data-i18n="results">Результаты</h2>
                     <div id="resultCount"></div>
                 </div>
                 <div id="resultsTable"></div>
