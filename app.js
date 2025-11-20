@@ -687,7 +687,7 @@ function generateZoneFiles(filteredList, params, customValues = '') {
 }
 
 // Display results
-function displayResults(outputList, zoneFiles) {
+function displayResults(outputList, zoneFiles, filteredList = null, params = null) {
     const resultsSection = document.getElementById('resultsSection');
     const resultsTable = document.getElementById('resultsTable');
     const downloadLinks = document.getElementById('downloadLinks');
@@ -724,6 +724,11 @@ function displayResults(outputList, zoneFiles) {
         link.textContent = file.name;
         downloadLinks.appendChild(link);
     });
+    
+    // Display repeaters on map if GPS or QTH type and we have coordinates
+    if (filteredList && params && (params.type === 'gps' || params.type === 'qth')) {
+        displayRepeatersOnMap(filteredList);
+    }
     
     resultsSection.classList.add('active');
 }
@@ -827,7 +832,7 @@ document.getElementById('repeaterForm').addEventListener('submit', async (e) => 
         const { zoneFiles, outputList } = generateZoneFiles(filteredList, params, customValues);
         
         // Display results
-        displayResults(outputList, zoneFiles);
+        displayResults(outputList, zoneFiles, filteredList, params);
         showStatus(`${t('zonesGenerated')} ${zoneFiles.length}`, 'success');
         
     } catch (error) {
@@ -845,6 +850,9 @@ if (typeSelect) {
         document.getElementById('mccParams').classList.remove('active');
         document.getElementById('qthParams').classList.remove('active');
         document.getElementById('gpsParams').classList.remove('active');
+        
+        // Clear repeater markers when switching types
+        clearRepeaterMarkers();
         
         if (e.target.value === 'mcc') {
             document.getElementById('mccParams').classList.add('active');
@@ -893,6 +901,8 @@ function resetForm() {
     document.getElementById('qthParams').classList.remove('active');
     document.getElementById('gpsParams').classList.remove('active');
     document.getElementById('customValuesContainer').classList.remove('active');
+    // Clear repeater markers from map
+    clearRepeaterMarkers();
 }
 
 // Initialize language on page load
@@ -936,6 +946,7 @@ if (document.readyState === 'loading') {
 let map = null;
 let marker = null;
 let radiusCircle = null;
+let repeaterMarkers = []; // Array to store repeater markers
 let isUpdatingFromMap = false;
 let isUpdatingFromInput = false;
 
@@ -1126,6 +1137,112 @@ function updateRadiusCircle() {
         fillOpacity: 0.2,
         radius: radius * 1000 // Convert km to meters
     }).addTo(map);
+}
+
+// Display repeaters on map
+function displayRepeatersOnMap(filteredList) {
+    // Remove existing repeater markers
+    clearRepeaterMarkers();
+    
+    // Filter repeaters that have coordinates
+    const repeatersWithCoords = filteredList.filter(item => 
+        item.lat && item.lng && 
+        !isNaN(parseFloat(item.lat)) && 
+        !isNaN(parseFloat(item.lng))
+    );
+    
+    if (repeatersWithCoords.length === 0) {
+        return; // No repeaters with coordinates
+    }
+    
+    // Ensure map is initialized
+    if (!map) {
+        // Try to initialize map
+        waitForLeaflet(() => {
+            // Make GPS section visible if not already
+            const gpsParams = document.getElementById('gpsParams');
+            if (gpsParams) {
+                gpsParams.classList.add('active');
+            }
+            setTimeout(() => {
+                initMap();
+                // After map is initialized, add markers
+                setTimeout(() => {
+                    addRepeaterMarkers(repeatersWithCoords);
+                }, 300);
+            }, 200);
+        });
+    } else {
+        // Map already exists, just add markers
+        addRepeaterMarkers(repeatersWithCoords);
+    }
+}
+
+// Add repeater markers to map
+function addRepeaterMarkers(repeatersWithCoords) {
+    if (!map || typeof L === 'undefined') return;
+    
+    const bounds = [];
+    
+    repeatersWithCoords.forEach(item => {
+        const lat = parseFloat(item.lat);
+        const lng = parseFloat(item.lng);
+        
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        const callsign = item.callsign || item.id || 'Unknown';
+        const city = item.city || '';
+        const rx = item.rx || '';
+        const tx = item.tx || '';
+        const url = `https://brandmeister.network/?page=repeater&id=${item.id}`;
+        
+        // Create popup content
+        const popupContent = `
+            <div style="min-width: 150px;">
+                <strong>${callsign}</strong><br>
+                ${city ? `${city}<br>` : ''}
+                RX: ${rx} MHz<br>
+                TX: ${tx} MHz<br>
+                <a href="${url}" target="_blank" style="color: #667eea;">${t('link')}</a>
+            </div>
+        `;
+        
+        // Create marker with custom icon (smaller than default)
+        const repeaterMarker = L.marker([lat, lng], {
+            icon: L.divIcon({
+                className: 'repeater-marker',
+                html: `<div style="background-color: #28a745; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📻</div>`,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+            })
+        }).addTo(map);
+        
+        repeaterMarker.bindPopup(popupContent);
+        repeaterMarkers.push(repeaterMarker);
+        bounds.push([lat, lng]);
+    });
+    
+    // Fit map to show all repeaters
+    if (bounds.length > 0) {
+        try {
+            map.fitBounds(bounds, {
+                padding: [50, 50],
+                maxZoom: 12
+            });
+        } catch (e) {
+            console.warn('Error fitting bounds:', e);
+        }
+    }
+}
+
+// Clear all repeater markers from map
+function clearRepeaterMarkers() {
+    if (!map) return;
+    
+    repeaterMarkers.forEach(marker => {
+        map.removeLayer(marker);
+    });
+    repeaterMarkers = [];
 }
 
 // Wait for Leaflet to load
