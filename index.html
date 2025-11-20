@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOTOTRBO Zone Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }
+
+        .header .credits {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .header .credits a {
+            color: white;
+            text-decoration: underline;
+            transition: opacity 0.3s;
+        }
+
+        .header .credits a:hover {
+            opacity: 0.8;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tooltip-icon {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: help;
+            flex-shrink: 0;
+        }
+
+        .tooltip-icon:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 8px;
+            padding: 10px 14px;
+            background: #333;
+            color: white;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: normal;
+            white-space: normal;
+            width: 280px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+            line-height: 1.5;
+        }
+
+        .tooltip-icon:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 2px;
+            border: 6px solid transparent;
+            border-top-color: #333;
+            z-index: 1001;
+            pointer-events: none;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group.checkbox {
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group.checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .type-specific {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .type-specific.active {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .results-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .results-header h2 {
+            color: #333;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.active {
+            display: block;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .download-links {
+            margin-top: 20px;
+        }
+
+        .download-links a {
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .download-links a:hover {
+            background: #218838;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MOTOTRBO Zone Generator</h1>
+            <p>Генератор зон для MOTOTRBO из списка репитеров BrandMeister</p>
+            <div class="credits">
+                Основано на работе <a href="https://github.com/yl3im" target="_blank" rel="noopener noreferrer">yl3im</a> | 
+                <a href="https://github.com/yl3im/motobm" target="_blank" rel="noopener noreferrer">Репозиторий</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <form id="repeaterForm">
+                <div class="form-section">
+                    <h2>Основные параметры</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">
+                                Название зоны *
+                                <span class="tooltip-icon" data-tooltip="Выберите произвольное название для вашей зоны. Это название будет использоваться в имени XML файла и в настройках радио.">?</span>
+                            </label>
+                            <input type="text" id="name" name="name" required placeholder="Например: Germany">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="band">
+                                Диапазон *
+                                <span class="tooltip-icon" data-tooltip="Выберите частотный диапазон: VHF (2 метра, 144-148 МГц) или UHF (70 сантиметров, 430-440 МГц).">?</span>
+                            </label>
+                            <select id="band" name="band" required>
+                                <option value="">Выберите диапазон</option>
+                                <option value="vhf">VHF (2м)</option>
+                                <option value="uhf">UHF (70см)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="type">
+                                Тип выбора *
+                                <span class="tooltip-icon" data-tooltip="Выберите способ фильтрации репитеров: по MCC коду (код страны), по QTH локатору (Maidenhead) или по GPS координатам.">?</span>
+                            </label>
+                            <select id="type" name="type" required>
+                                <option value="">Выберите тип</option>
+                                <option value="mcc">MCC код</option>
+                                <option value="qth">QTH локатор</option>
+                                <option value="gps">GPS координаты</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="zoneCapacity">
+                                Емкость зоны
+                                <span class="tooltip-icon" data-tooltip="Максимальное количество каналов в одной зоне. По умолчанию 160 для топовых моделей. Используйте 16 для lite и моделей без дисплея.">?</span>
+                            </label>
+                            <input type="number" id="zoneCapacity" name="zoneCapacity" value="160" min="1" max="160">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2>Параметры фильтрации</h2>
+                    <div class="form-grid">
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="force" name="force">
+                            <label for="force">
+                                Принудительно скачать список
+                                <span class="tooltip-icon" data-tooltip="Принудительно загрузить свежий список репитеров с сервера, игнорируя кэш (данные кэшируются на 1 час).">?</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="pep" name="pep">
+                            <label for="pep">
+                                Только репитеры с указанной мощностью
+                                <span class="tooltip-icon" data-tooltip="Показывать только репитеры, у которых указана мощность передатчика (PEP). Это помогает отфильтровать неполные записи.">?</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="six" name="six">
+                            <label for="six">
+                                Только репитеры с 6-значным ID
+                                <span class="tooltip-icon" data-tooltip="Показывать только репитеры с 6-значным ID. Это помогает отфильтровать хотспоты (обычно имеют 7-значный ID) и оставить только настоящие репитеры.">?</span>
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox">
+                            <input type="checkbox" id="customize" name="customize">
+                            <label for="customize">
+                                Включить пользовательские значения
+                                <span class="tooltip-icon" data-tooltip="Включить дополнительные настройки в каждый сгенерированный канал. Укажите XML-поля, которые будут добавлены в каждый канал (например, дополнительные field элементы).">?</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="customValuesContainer" class="type-specific" style="margin-top: 15px;">
+                        <div class="form-group">
+                            <label for="customValues">
+                                Пользовательские XML-поля
+                                <span class="tooltip-icon" data-tooltip="Введите дополнительные XML-поля, которые будут добавлены в каждый канал. ВАЖНО: Контакт (например, RussianGlobal) должен быть предварительно внесен в список контактов в CPS2.0, чтобы его можно было использовать здесь. Например: &lt;field name=&quot;CP_CUSTOM&quot;&gt;value&lt;/field&gt;">?</span>
+                            </label>
+                            <div style="margin-bottom: 10px; padding: 10px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; font-size: 13px;">
+                                <strong>⚠️ Важно:</strong> Контакт (например, "RussianGlobal") и группа RX (например, "Избранные") должны быть предварительно внесены в CPS2.0, чтобы их можно было использовать здесь.
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #555; font-size: 13px;">1. Контакт "RussianGlobal":</div>
+                                <div style="margin-bottom: 10px; text-align: center;">
+                                    <img src="contacts-example.svg" alt="Пример контактов в CPS2.0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+                                </div>
+                                <div style="margin-bottom: 10px; font-weight: 600; color: #555; font-size: 13px; margin-top: 15px;">2. RX Group "Избранные":</div>
+                                <div style="margin-bottom: 10px; text-align: center;">
+                                    <img src="rxgroup-example.svg" alt="Пример RX Group в CPS2.0" style="max-width: 100%; border: 1px solid #ddd; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" onerror="this.style.display='none'">
+                                </div>
+                            </div>
+                            <textarea id="customValues" name="customValues" rows="6" placeholder='Например:&#10;&lt;field name="CP_CUSTOM"&gt;value&lt;/field&gt;&#10;&lt;field name="CP_ANOTHER"&gt;another_value&lt;/field&gt;' style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical;"><field name="CP_UKPPERS" Name="RussianGlobal">RussianGlobal</field>
+<field name="CP_TGLISTIT" Name="DigitalRXGroupList/Избранные">DigitalRXGroupList/Избранные</field></textarea>
+                            <small style="color: #666; margin-top: 5px; display: block;">Содержимое будет добавлено в каждый сгенерированный канал.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="callsign">
+                            Фильтр по позывному
+                            <span class="tooltip-icon" data-tooltip="Показывать только репитеры, позывной которых содержит указанную строку. Например, можно указать номер региона для фильтрации по региону.">?</span>
+                        </label>
+                        <input type="text" id="callsign" name="callsign" placeholder="Например: регион">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div id="mccParams" class="type-specific">
+                        <h2>Параметры MCC</h2>
+                        <div class="form-group">
+                            <label for="mcc">
+                                MCC код или код страны
+                                <span class="tooltip-icon" data-tooltip="MCC (Mobile Country Code) - первые 3 цифры ID репитера, обычно соответствуют коду страны. Можно указать 3-значный код (например: 262 для Германии) или двухбуквенный код страны (например: DE для Германии, RU для России).">?</span>
+                            </label>
+                            <input type="text" id="mcc" name="mcc" placeholder="Например: 262 или DE">
+                        </div>
+                    </div>
+
+                    <div id="qthParams" class="type-specific">
+                        <h2>Параметры QTH локатора</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="qth">
+                                    QTH локатор
+                                    <span class="tooltip-icon" data-tooltip="QTH локатор (Maidenhead Locator System) - система координат, используемая в радиолюбительской связи. Формат: 2-6 символов (например: KO26BX). Первые 2 буквы - крупная сетка, следующие 2 цифры - средняя, последние 2 буквы - мелкая сетка.">?</span>
+                                </label>
+                                <input type="text" id="qth" name="qth" placeholder="Например: KO26BX">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="radius">
+                                    Радиус (км)
+                                    <span class="tooltip-icon" data-tooltip="Радиус поиска репитеров вокруг центра QTH локатора в километрах. По умолчанию 100 км.">?</span>
+                                </label>
+                                <input type="number" id="radius" name="radius" value="100" min="1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="gpsParams" class="type-specific">
+                        <h2>Параметры GPS</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="lat">
+                                    Широта
+                                    <span class="tooltip-icon" data-tooltip="Географическая широта в градусах (от -90 до 90). Для северного полушария - положительное значение, для южного - отрицательное. Например: 59.225 для Стокгольма.">?</span>
+                                </label>
+                                <input type="number" id="lat" name="lat" step="any" placeholder="Например: 59.225">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lng">
+                                    Долгота
+                                    <span class="tooltip-icon" data-tooltip="Географическая долгота в градусах (от -180 до 180). Для восточного полушария - положительное значение, для западного - отрицательное. Например: 18.250 для Стокгольма, -93.2780 для Миннеаполиса.">?</span>
+                                </label>
+                                <input type="number" id="lng" name="lng" step="any" placeholder="Например: 18.250">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="radiusGps">
+                                    Радиус (км)
+                                    <span class="tooltip-icon" data-tooltip="Радиус поиска репитеров вокруг указанных GPS координат в километрах. По умолчанию 100 км.">?</span>
+                                </label>
+                                <input type="number" id="radiusGps" name="radiusGps" value="100" min="1">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn-primary">Сгенерировать зоны</button>
+                    <button type="button" class="btn-secondary" onclick="resetForm()">Сбросить</button>
+                </div>
+            </form>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 15px;">Загрузка данных...</p>
+            </div>
+
+            <div class="status" id="status"></div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="results-header">
+                    <h2>Результаты</h2>
+                    <div id="resultCount"></div>
+                </div>
+                <div id="resultsTable"></div>
+                <div class="download-links" id="downloadLinks"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
